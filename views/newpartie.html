@@ -1,0 +1,60 @@
+<html>
+    socket 2
+    <script src="/socket.io/socket.io.js"></script>
+
+    <body>
+        
+        <div>
+        <label for="nom">Nom</label>
+        <input name="nom" type="text">
+        <label for="joueur_1">Joueur 1</label>
+
+        <input name="joueur_1" type="text">
+
+        <label for="joueur_2">joueur_2</label>
+        <input name="joueur_2" type="text">
+        <input value="Envoyer" type="button" onclick="creerPartie()">
+        <input name="Afficherstat" value="Afficher stat" type="button" onclick="Afficherstat()">
+    </div>
+        
+        <div id="text"></div>
+        <script>
+            // socket 4
+            const socket = io();
+            function creerPartie(){
+                const joueur_1 = document.querySelector('input[name="joueur_1"]').value;
+                const joueur_2 = document.querySelector('input[name="joueur_2"]').value;
+                const nom = document.querySelector('input[name="nom"]').value;
+                
+                socket.emit('creerPartie', { joueur_1, joueur_2,nom });
+              
+            }
+            
+            socket.on('partieCreee', (data) => {
+                document.getElementById('text').innerHTML = "<h1> Partie creee: " + data.nom+" </h1><div>Joueur 1: " + data.joueur_1 + "</div><div>Joueur 2: " + data.joueur_2 + "</div>";
+            });
+            
+            socket.on('erreurCreationPartie', (error) => {
+                document.getElementById('text').textContent = "Erreur: " + error;
+            });
+            function Afficherstat(){
+                const joueur_1 = document.querySelector('input[name="joueur_1"]').value;
+                const joueur_2 = document.querySelector('input[name="joueur_2"]').value;
+                const nom = document.querySelector('input[name="nom"]').value;
+                socket.emit('Afficherstat', { joueur_1, joueur_2,nom });
+                socket.on('statAffiche', (data) => {
+                    console.log(data);
+                    const text = `
+                        <div>Joueur 1: ${data.joueur_1.pseudo}</div>
+                        <div>Joueur 2: ${data.joueur_2.pseudo}</div>
+                        <div>Sante Joueur 1: ${data.joueur_1.sante}</div>
+                        <div>Sante Joueur 2: ${data.joueur_2.sante}</div>
+                        <div>Score Joueur 1: ${data.joueur_1.score}</div>
+                        <div>Score Joueur 2: ${data.joueur_2.score}</div>
+                    `;
+                    document.getElementById('text').innerHTML = "<h1> Nom: " + data.partie.nom+" </h1><div>" + text + "</div>";
+                });
+            }
+        </script>
+    </body>
+</html>
