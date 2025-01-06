@@ -10,7 +10,9 @@ router.get('/', function(req, res, next) {
 });
 
 router.post('/create/:id', validate,function(req, res, next) {
-  let Livre = new livre(req.params.id);
+  console.log(req.params.id);
+  let Livre = new livre(req.body);
+  Livre.id_bibliotheque = req.params.id;
   Livre.etat = "disponible";
   let Bibliotheque;
   bibliotheque.findById(Livre.id_bibliotheque).then(function(b){
@@ -21,7 +23,7 @@ router.post('/create/:id', validate,function(req, res, next) {
     Bibliotheque.save();
   });
   Livre.save();
-  res.send('La livre est créée avec succès :'+Bibliotheque.adresse);
+  res.send('La livre est créée avec succès :'+Bibliotheque);
 });
 router.put('/location/:id', async function(req, res, next) {
   try {
