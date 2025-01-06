@@ -9,8 +9,8 @@ router.get('/', function(req, res, next) {
   res.send('respond with a resource');
 });
 
-router.post('/create', validate,function(req, res, next) {
-  let Livre = new livre(req.body);
+router.post('/create/:id', validate,function(req, res, next) {
+  let Livre = new livre(req.params.id);
   Livre.etat = "disponible";
   let Bibliotheque;
   bibliotheque.findById(Livre.id_bibliotheque).then(function(b){
