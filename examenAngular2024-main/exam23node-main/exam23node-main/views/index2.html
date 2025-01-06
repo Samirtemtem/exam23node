@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gestion des Parties</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        input {
+            padding: 5px;
+            width: 200px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #notifications {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        #stats {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gestion des Parties</h1>
+    
+    <div class="form-group">
+        <label>Nom Partie:</label>
+        <input type="text" id="nomPartie">
+    </div>
+    
+    <div class="form-group">
+        <label>ID Joueur 1:</label>
+        <input type="text" id="joueur1Id">
+    </div>
+    
+    <div class="form-group">
+        <label>ID Joueur 2:</label>
+        <input type="text" id="joueur2Id">
+    </div>
+    
+    <button onclick="creerPartie()">Envoyer</button>
+    <button onclick="afficherStats()">Afficher Stat</button>
+    
+    <div id="notifications"></div>
+    <div id="stats"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        
+        function creerPartie() {
+            const nomPartie = document.getElementById('nomPartie').value;
+            const joueur1Id = document.getElementById('joueur1Id').value;
+            const joueur2Id = document.getElementById('joueur2Id').value;
+            
+            fetch(`/user/newparite/${joueur1Id}/${joueur2Id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ nom: nomPartie })
+            })
+            .then(response => response.json())
+            .then(data => {
+                socket.emit('nouvelle_partie', {
+                    nom: nomPartie,
+                    joueur1Id: joueur1Id,
+                    joueur2Id: joueur2Id
+                });
+            });
+        }
+        
+        function afficherStats() {
+            const joueur1Id = document.getElementById('joueur1Id').value;
+            const joueur2Id = document.getElementById('joueur2Id').value;
+            
+            Promise.all([
+                fetch(`/user/getjoueur/${joueur1Id}`).then(res => res.json()),
+                fetch(`/user/getjoueur/${joueur2Id}`).then(res => res.json())
+            ])
+            .then(([joueur1, joueur2]) => {
+                socket.emit('afficher_stats', {
+                    nom: document.getElementById('nomPartie').value,
+                    joueur1: joueur1,
+                    joueur2: joueur2
+                });
+            });
+        }
+        
+        socket.on('partie_creee', (data) => {
+            const notif = document.getElementById('notifications');
+            notif.innerHTML = `
+                <h3>Partie : ${data.nom}</h3>
+                <p>Id Joueur 1 : ${data.joueur1Id}</p>
+                <p>Id Joueur 2 : ${data.joueur2Id}</p>
+            `;
+        });
+        
+        socket.on('stats_joueurs', (data) => {
+            const stats = document.getElementById('stats');
+            stats.innerHTML = `
+                <h3>Stats:</h3>
+                <p>Nom : ${data.nom}</p>
+                <p>Nom joueur 1: ${data.joueur1.nom}</p>
+                <p>Score: ${data.joueur1.score}</p>
+                <p>Sante: ${data.joueur1.sante}</p>
+                <p>Nom joueur 2: ${data.joueur2.nom}</p>
+                <p>Score: ${data.joueur2.score}</p>
+                <p>Sante: ${data.joueur2.sante}</p>
+            `;
+        });
+    </script>
+</body>
+</html>

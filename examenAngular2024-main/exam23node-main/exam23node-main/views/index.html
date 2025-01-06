@@ -1,0 +1,73 @@
+<html>
+    socket 2
+    <script src="/socket.io/socket.io.js"></script>
+
+    <body>
+        <h1>Location des livres</h1>
+        <div>
+        <label for="Idlivre">Id livre</label>
+        <input name="idlivre" id="idlivre" type="text">
+        <input value="Location" type="button" onclick="LouerLivre()">
+    </div>
+        
+        <div id="text"></div>
+        <script>
+            // socket 4
+            const socket = io();
+            socket.emit("getLivresnonloues");
+            socket.on('livresnonloues', (data) => {
+                console.log(data);
+                const text = `
+                    ${data.map(livre => `<div>id: ${livre._id}| titre: ${livre.titre} | auteur: ${livre.auteur} | etat: ${livre.etat} | date_publication: ${livre.date_publication} | id_bibliotheque: ${livre.id_bibliotheque}</div>`).join('')}
+                `;
+                document.getElementById('text').innerHTML = text;
+            });
+            socket.on('connect', () => {
+                console.log('Connected to server');
+            });
+            function LouerLivre(){
+                const idlivre = document.querySelector('input[name="idlivre"]').value;
+                socket.emit('LouerLivre', { idlivre });
+            }
+
+            socket.on('notificationlocation', (data) => {
+            alert(data);
+            })
+
+            function creerPartie(){
+                const joueur_1 = document.querySelector('input[name="joueur_1"]').value;
+                const joueur_2 = document.querySelector('input[name="joueur_2"]').value;
+                const nom = document.querySelector('input[name="nom"]').value;
+                
+                socket.emit('creerPartie', { joueur_1, joueur_2,nom });
+              
+            }
+            
+            socket.on('partieCreee', (data) => {
+                document.getElementById('text').innerHTML = "<h1> Partie creee: " + data.nom+" </h1><div>Joueur 1: " + data.joueur_1 + "</div><div>Joueur 2: " + data.joueur_2 + "</div>";
+            });
+            
+            socket.on('erreurCreationPartie', (error) => {
+                document.getElementById('text').textContent = "Erreur: " + error;
+            });
+            function Afficherstat(){
+                const joueur_1 = document.querySelector('input[name="joueur_1"]').value;
+                const joueur_2 = document.querySelector('input[name="joueur_2"]').value;
+                const nom = document.querySelector('input[name="nom"]').value;
+                socket.emit('Afficherstat', { joueur_1, joueur_2,nom });
+                socket.on('statAffiche', (data) => {
+                    console.log(data);
+                    const text = `
+                        <div>Joueur 1: ${data.joueur_1.pseudo}</div>
+                        <div>Joueur 2: ${data.joueur_2.pseudo}</div>
+                        <div>Sante Joueur 1: ${data.joueur_1.sante}</div>
+                        <div>Sante Joueur 2: ${data.joueur_2.sante}</div>
+                        <div>Score Joueur 1: ${data.joueur_1.score}</div>
+                        <div>Score Joueur 2: ${data.joueur_2.score}</div>
+                    `;
+                    document.getElementById('text').innerHTML = "<h1> Nom: " + data.partie.nom+" </h1><div>" + text + "</div>";
+                });
+            }
+        </script>
+    </body>
+</html>

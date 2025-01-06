@@ -1,0 +1,48 @@
+<html>
+	<head>
+		<script src="/socket.io/socket.io.js"></script>
+	</head>
+	<body>
+		<label for="ch">Msg:</label><input id="ch" onkeyup="ty()" type="text"><input onclick="send()" type="submit">
+		<script>
+			const socket = io.connect();
+u = prompt("Type ur name")
+
+
+// Version 2
+let typingTimeout; // Variable pour gérer le délai d'effacement
+let p = document.createElement('p'); // Crée une seule fois l'élément <p>
+document.body.append(p); // Ajoute l'élément au DOM
+
+socket.on("typing", (data) => {
+    // Met à jour le texte à chaque fois sans recréer un nouvel élément
+    p.innerText = data + " is typing...";
+    
+    // Réinitialise le délai d'effacement si l'utilisateur continue de taper
+    clearTimeout(typingTimeout);
+    
+    // Définit un délai pour effacer le texte après 2 secondes (par exemple)
+    typingTimeout = setTimeout(() => {
+        p.innerText = ""; // Efface le texte
+    }, 2000); // 2000ms = 2 secondes
+}); 
+
+
+socket.on("msg", (data) => {
+p = document.createElement("p")
+p.innerText = (data)
+document.body.append(p)
+})
+x = document.getElementById("ch");
+function ty() {
+console.log("u :" + u);
+socket.emit("typing", u)
+}
+function send() {
+
+console.log("d1" + x.value);
+socket.emit("msg", x.value)
+}
+		</script>
+	</body>
+</html>
